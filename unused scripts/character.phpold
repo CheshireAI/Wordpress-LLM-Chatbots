@@ -1,0 +1,225 @@
+<?php
+
+function character_form_shortcode() {
+
+    ob_start();
+    include(plugin_dir_path(__FILE__) . 'character_html.php');
+    $html_content = ob_get_clean();
+    return $html_content;
+
+    // Access the global $wpdb object
+    global $wpdb;
+
+    // Retrieve the current user ID
+    $user_id = get_current_user_id();
+
+    // Retrieve the meta values
+    $fields = array(
+        'photo' => 'Photo',
+        'name' => 'Name',
+        'personality' => 'Personality',
+        'body' => 'Body',
+        'loves' => 'Loves',
+        'hates' => 'Hates',
+        'action' => 'Action',
+        'character' => 'Character',
+        'clothes' => 'Clothes',
+        'background' => 'Background',
+        'style' => 'Style',
+        'color' => 'Color',
+        'species' => 'Species',
+        'race' => 'Race',
+        'sex' => 'Sex',
+        'sexuality' => 'Sexuality',
+        'age' => 'Age',
+        'description' => 'Description',
+    );
+
+    // Create the meta keys if they don't exist for a first-time user
+    foreach ($fields as $field => $label) {
+        if (!metadata_exists('user', $user_id, 'character_' . $field)) {
+            $updated = add_user_meta($user_id, 'character_' . $field, '', true);
+            if (!$updated) {
+                $last_error = $wpdb->last_error ? $wpdb->last_error : "Update returned false, but no last error was found.";
+                error_log("Failed to create '$field'. Database error: " . $last_error);
+            }
+        }
+    }
+
+    // Retrieve the character_photo meta value from user metadata
+    $user_image_url = get_user_meta($user_id, 'character_photo', true);
+
+    // Initialize the $output variable
+    $output = '';
+
+    foreach ($fields as $field => $label) {
+        if ($field === 'photo') {
+            continue; // Skip displaying the photo field
+        }
+
+        $value = get_user_meta($user_id, 'character_' . $field, true);
+
+        if ($field === 'action' || $field === 'character' || $field === 'clothes' || $field === 'background') {
+            $output .= $label . ': ' . esc_html($value) . "\n";
+        } elseif ($field === 'description') {
+            $output .= $label . ': ' . esc_html($value) . "\n";
+        } else {
+            $output .= $label . ': ' . esc_html($value) . "\n";
+        }
+    }
+
+    return $output;
+}
+
+add_shortcode('character', 'character_form_shortcode');
+
+function save_character_form() {
+    $form_data = array();
+    foreach ($_POST["form_data"] as $item) {
+        $form_data[$item['name']] = $item['value'];
+    }
+
+    // Access the global $wpdb object
+    global $wpdb;
+
+    // Retrieve the current user ID
+    $user_id = get_current_user_id();
+
+    // Retrieve the meta values
+    $fields = array(
+        'photo' => 'Photo',
+        'name' => 'Name',
+        'personality' => 'Personality',
+        'body' => 'Body',
+        'loves' => 'Loves',
+        'hates' => 'Hates',
+        'action' => 'Action',
+        'character' => 'Character',
+        'clothes' => 'Clothes',
+        'background' => 'Background',
+        'style' => 'Style',
+        'color' => 'Color',
+        'species' => 'Species',
+        'race' => 'Race',
+        'sex' => 'Sex',
+        'sexuality' => 'Sexuality',
+        'age' => 'Age',
+        'description' => 'Description',
+    );
+
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'character_nonce_action')) {
+        error_log('Nonce check failed');
+        die;
+    }
+
+    // Update the meta values with the submitted form data
+    foreach ($fields as $field => $label) {
+        if (isset($form_data[$field])) { // Check if the form field is set
+            $new_value = sanitize_text_field($form_data[$field]);
+            $old_value = get_user_meta($user_id, 'character_' . $field, true);
+
+            if ($new_value != $old_value) {
+                $updated = update_user_meta($user_id, 'character_' . $field, $new_value);
+
+                if (!$updated) {
+                    error_log("Failed to update '$field' with value $new_value");
+                    if ($wpdb->last_error) {
+                        $last_error = $wpdb->last_error;
+                        error_log("Last database error: $last_error");
+                    }
+                }
+            }
+        }
+    }
+    wp_die();
+}
+
+add_action("wp_ajax_characterAjax", "save_character_form");
+add_action("wp_ajax_nopriv_characterAjax", "save_character_form");
+
+function upload_character_photo() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'character_nonce_action')) {
+        error_log('Nonce check failed');
+        die;
+    }
+
+    if (!isset($_FILES['character_photo']) || !is_array($_FILES['character_photo'])) {
+        error_log('No character photo file uploaded');
+        die;
+    }
+
+    $file = $_FILES['character_photo'];
+    $upload_dir = wp_upload_dir();
+    $file_name = wp_unique_filename($upload_dir['path'], $file['name']);
+
+    if (wp_mkdir_p($upload_dir['path'])) {
+        $file_path = $upload_dir['path'] . '/' . $file_name;
+    } else {
+        $file_path = $upload_dir['basedir'] . '/' . $file_name;
+    }
+
+    if (move_uploaded_file($file['tmp_name'], $file_path)) {
+        // Update the character_photo meta value
+        $user_id = get_current_user_id();
+        update_user_meta($user_id, 'character_photo', $upload_dir['url'] . '/' . $file_name);
+        echo 'success';
+    } else {
+        echo 'error';
+    }
+
+    wp_die();
+}
+
+add_action("wp_ajax_upload_character_photo", "upload_character_photo");
+add_action("wp_ajax_nopriv_upload_character_photo", "upload_character_photo");
+
+function my_clear_meta_keys_function() {
+    // Check nonce for security
+    check_ajax_referer('character_nonce_action', 'nonce');
+
+    // Access the global $wpdb object
+    global $wpdb;
+
+    // Retrieve the current user ID
+    $user_id = get_current_user_id();
+
+    // Retrieve the meta values
+    $fields = array(
+        'photo',
+        'name',
+        'personality',
+        'body',
+        'loves',
+        'hates',
+        'action',
+        'character',
+        'clothes',
+        'background',
+        'style',
+        'color',
+        'species',
+        'race',
+        'sex',
+        'sexuality',
+        'age',
+        'description',
+    );
+
+    // Clear all meta keys here and reset them to zero
+    foreach ($fields as $field) {
+        $updated = update_user_meta($user_id, 'character_' . $field, '');
+        if (!$updated) {
+            $last_error = $wpdb->last_error ? $wpdb->last_error : "Update returned false, but no last error was found.";
+            error_log("Failed to reset '$field'. Database error: " . $last_error);
+        }
+    }
+
+    // Send a response back to the client
+    echo 'Meta keys cleared and reset';
+    wp_die(); // this is required to terminate immediately and return a proper response
+}
+
+add_action('wp_ajax_clear_meta_keys', 'my_clear_meta_keys_function');
+add_action('wp_ajax_nopriv_clear_meta_keys', 'my_clear_meta_keys_function');
+
+?>

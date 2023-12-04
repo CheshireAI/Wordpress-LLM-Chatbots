@@ -1,0 +1,166 @@
+<form class="character-form" method="post" action="" enctype="multipart/form-data">
+    <div class="circle">
+        <img class="profile-pic" src="<?php echo ($user_image_url ? $user_image_url : 'https://t3.ftcdn.net/jpg/03/46/83/96/360_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg'); ?>">
+        <div class="p-image">
+            <i class="fa fa-camera upload-button"></i>
+            <input class="file-upload" type="file" name="character_photo" accept="image/*"/>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-column">
+            <label for="name" title="Enter your character Name">Name</label>
+            <input type="text" name="name" value="<?php echo esc_attr($name); ?>" placeholder="Name">
+        </div>
+        <div class="form-column">
+            <label for="personality" title="Enter your character Personality">Personality</label>
+            <input type="text" name="personality" value="<?php echo esc_attr($personality); ?>" placeholder="Personality">
+        </div>
+        <div class="form-column">
+            <label for="body" title="Enter your character Body">Body</label>
+            <input type="text" name="body" value="<?php echo esc_attr($body); ?>" placeholder="Body">
+        </div>
+        <div class="form-column">
+            <label for="loves" title="Enter your character Loves">Loves</label>
+            <input type="text" name="loves" value="<?php echo esc_attr($loves); ?>" placeholder="Loves">
+        </div>
+        <div class="form-column">
+            <label for="hates" title="Enter your character Hates">Hates</label>
+            <input type="text" name="hates" value="<?php echo esc_attr($hates); ?>" placeholder="Hates">
+        </div>
+        <div class="form-column">
+            <label for="action" title="Select the character Action">Action</label>
+            <select name="action">
+                <option value="" disabled selected>Select Action</option>
+                <option value=" " ' . selected($value, 'no_species', false) . '>None</option>
+                <option value="suckhertonguealexzuov5, tongue out" ' . selected($value, 'tongue_out', false) . '>Tongue Out</option>
+                <option value="oral-dildo, sucking dildo" ' . selected($value, 'oral_dildo', false) . '>Oral Dildo</option>
+                <option value="under-boo, underboob" ' . selected($value, 'under_boob', false) . '>Underboob</option>
+                <!-- Add more options here -->
+            </select>
+        </div>
+        <div class="form-column">
+            <label for="character" title="Select the character Character">Character</label>
+            <select name="character">
+                <option value="" disabled selected>Select Character</option>
+                <option value=" " ' . selected($value, 'no_character', false) . '>None</option>
+                <option value="AmberHeard1, amber heard" ' . selected($value, 'amber_heard', false) . '>Amber Heard</option>
+                <option value="arma1, ana de armas" ' . selected($value, 'ana_de_armas', false) . '>Ana de Armas</option>
+                <option value="4nj0lie, angelina jolie" ' . selected($value, 'angelina_jolie', false) . '>Angelina Jolie</option>
+                <option value="AudreyHepburn, audry hepburn" ' . selected($value, 'audrey_hepburn', false) . '>Audrey Hepburn</option>
+                <option value="Bell4L0b4t001, bella lobato" ' . selected($value, 'bella_lobato', false) . '>Bella Lobato</option>
+                <option value="b1j0u, bijou phillips" ' . selected($value, 'bijou_phillips', false) . '>Bijou Phillips</option>
+                <option value="ch103s3v, chloe sevigny" ' . selected($value, 'chloe_sevigny', false) . '>Chloë Sevigny</option>
+                <option value="cr1styren, cristy ren" ' . selected($value, 'cristy_ren', false) . '>Cristy Ren</option>
+                <option value="the_trump, donald trump" ' . selected($value, 'donald_trump', false) . '>Donald Trump</option>
+                <option value="EmWat69, emma watson" ' . selected($value, 'emma_watson', false) . '>Emma Watson</option>
+                <option value="evag1, eva green" ' . selected($value, 'eva_green', false) . '>Eva Green</option>
+                <option value="evanW1, evan rachel wood" ' . selected($value, 'evan_rachel_wood', false) . '>Evan Rachel Wood</option>
+                <option value="evnclr, evelyn claire" ' . selected($value, 'evelyn_claire', false) . '>Evelyn Claire</option>
+                <option value="GraceKelly, grace kelly" ' . selected($value, 'grace_kelly', false) . '>Grace Kelly</option>
+                <option value="p54k1, jen psaki" ' . selected($value, 'jen_psaki', false) . '>Jen Psaki</option>
+                <option value="W3DDDN3SD4Y, jenna ortega" ' . selected($value, 'jenna_ortega', false) . '>Jenna Ortega</option>
+                <option value="jenn1f1850, jennifer connelly" ' . selected($value, 'jennifer_connelly', false) . '>Jennifer Connelly</option>
+                <option value="KateKuray, kate kuray" ' . selected($value, 'kate_kuray', false) . '>Kate Kuray</option>
+                <option value="KateMara2, kate mara" ' . selected($value, 'kate_mara', false) . '>Kate Mara</option>
+                <option value="Katr1n4K41f01, katrina kaif" ' . selected($value, 'katrina_kaif', false) . '>Katrina Kaif</option>
+                <option value="klebr0ck, kelly lebrock" ' . selected($value, 'kelly_lebrock', false) . '>Kelly LeBrock</option>
+                <option value="knightley3, kiera knightly" ' . selected($value, 'kiera_knightly', false) . '>Kiera Knightly</option>
+                <option value="krst3w4rt, kristen stewart" ' . selected($value, 'kristen_stewart', false) . '>Kristen Stewart</option>
+                <option value="GITSKrystenR, krysten ritter" ' . selected($value, 'jessica_jones', false) . '>Krysten Ritter</option>
+                <option value="Koh_KylieJenner, kylie jenner" ' . selected($value, 'kylie_jenner', false) . '>Kylie Jenner</option>
+                <option value="Mala1k44r0r401, malaika arora" ' . selected($value, 'malaika_arora', false) . '>Malaika Arora</option>
+                <option value="milak1, mila kunis" ' . selected($value, 'mila_kunis', false) . '>Mila Kunis</option>
+                <option value="w00ds, naomi woods" ' . selected($value, 'naomi_woods', false) . '>Naomi Woods</option>
+                <option value="natyport, natalie portman" ' . selected($value, 'natalie_portman', false) . '>Natalie Portman</option>
+                <option value="pr1nc355d1, princess diana" ' . selected($value, 'princess_diana', false) . '>Princess Diana</option>
+                <option value="diana, princess diana" ' . selected($value, 'princess_diana2', false) . '>Princess Diana 2</option>
+                <option value="r4ch3lmc4dd4ms, rachel mcadams" ' . selected($value, 'rachel_mcadams', false) . '>Rachel McAdams</option>
+                <option value="54andr4, sandra bullock" ' . selected($value, 'sandra_bullock', false) . '>Sandra Bullock</option>
+                <option value="sarasampaio, sara sampaio" ' . selected($value, 'sara_sampaio', false) . '>Sara Sampaio</option>
+                <option value="SiofraCipher, siofra cipher" ' . selected($value, 'siofra_cipher', false) . '>Síofra Cipher</option>
+                <option value="s0fv3rgara, sofia vergara" ' . selected($value, 'sofia_vergara', false) . '>Sofia Vergara</option>
+                <option value="zoeyd1, zooey deschanel" ' . selected($value, 'zooey_deschanel', false) . '>Zooey Deschanel</option>   
+                <!-- Add more options here -->
+            </select>
+        </div>
+        <div class="form-column">
+            <label for="clothes" title="Select the character Clothes">Clothes</label>
+            <select name="clothes">
+                <option value="" disabled selected>Select Clothes</option>
+                <option value=" " ' . selected($value, 'no_clothes', false) . '>None</option>     
+                <option value="CLASSICSTYLE" ' . selected($value, 'classical_style', false) . '>Classical</option> 
+                <option value="armani, fashion" ' . selected($value, 'armani_fashion', false) . '>Armani</option>
+                <option value="RFKTR_fshnsta, fashion" ' . selected($value, 'rfktr_fashionista', false) . '>Hot Couture</option>
+                <option value="zhubao, lingerie" ' . selected($value, 'zhubao_lingerie', false) . '>Lingerie</option>
+                <option value="suijing, diamonds, sparkling" ' . selected($value, 'suijing_crystal', false) . '>Diamonds</option>
+                <option value="longpao, dragon robe" ' . selected($value, 'longpao_dragon_robe', false) . '>Dragon Robe</option>
+                <option value="nvdi, oriental, princess" ' . selected($value, 'nvdi_oriental_princess', false) . '>Oriental Princess</option>
+                <option value="neiyi, oriental robe" ' . selected($value, 'neiyi_oriental_robe', false) . '>Oriental Robe</option>
+                <option value="heibai, lingerie" ' . selected($value, 'heibai_bw_lingerie', false) . '>B&W Lingerie</option>
+                <option value="n3t0p" ' . selected($value, 'n3t0p_fishnet', false) . '>Fishnet</option>
+                <option value="p0k13s, nipples" ' . selected($value, 'pointy_nipples', false) . '>Pointy Nipples</option>
+                <option value="vksw34t1, nipples" ' . selected($value, 'sweater_dress', false) . '>Sweater Dress</option>            
+                <option value="Old-Fashioned" ' . selected($value, 'old_fashioned', false) . '>Old Fashioned</option>
+                <option value="mulpty2, underwear" ' . selected($value, 'modest_underwear', false) . '>Modest Underwear</option>
+                <option value="jeansheels, jeans, heels" ' . selected($value, 'jeans_heels', false) . '>Jeans & High Heels</option>
+                <!-- Add more options here -->
+            </select>
+        </div>
+        <div class="form-column">
+            <label for="background" title="Select the character Background">Background</label>
+            <select name="background">
+                <option value="" disabled selected>Select Background</option>
+                <option value=" " ' . selected($value, 'no_action', false) . '>None</option>
+                <option value="Clutter-Mechanical" ' . selected($value, 'mechanical_shop', false) . '>Mechanical Shop</option>
+                <option value="NOIRKINO" ' . selected($value, 'film_noir', false) . '>Film Noir</option>
+                <option value="magical-girly, magic, girly" ' . selected($value, 'magical_girly', false) . '>Magical Girly</option>
+                <option value="rz-purepastel-21, pastel colors" ' . selected($value, 'pure_pastel', false) . '>Pure Pastel</option> 
+                <option value="DEN_barbuccisketch, sketch" ' . selected($value, 'barbucci_sketch', false) . '>Barbucci Sketch</option>
+                <option value="DEN_barbucci_artstyle, cartoon, toon" ' . selected($value, 'barducci_cartoon', false) . '>Barbucci Cartoon</option>
+                <option value="MAXFIELDPARRISH" ' . selected($value, 'maxfield_parrish', false) . '>Maxfield Parrish</option>
+                <option value="changting, oriental" ' . selected($value, 'changting_oriental_architecture', false) . '>Oriental Architecture</option>
+                <!-- Add more options here -->
+            </select>
+        </div>
+        <div class="form-column">
+            <label for="style" title="Enter your character Style">Style</label>
+            <input type="text" name="style" value="<?php echo esc_attr($style); ?>" placeholder="Style">
+        </div>
+        <div class="form-column">
+            <label for="color" title="Enter your character Color">Color</label>
+            <input type="text" name="color" value="<?php echo esc_attr($color); ?>" placeholder="Color">
+        </div>
+        <div class="form-column">
+            <label for="species" title="Enter your character Species">Species</label>
+            <input type="text" name="species" value="<?php echo esc_attr($species); ?>" placeholder="Species">
+        </div>
+        <div class="form-column">
+            <label for="race" title="Enter your character Race">Race</label>
+            <input type="text" name="race" value="<?php echo esc_attr($race); ?>" placeholder="Race">
+        </div>
+        <div class="form-column">
+            <label for="sex" title="Enter your character Sex">Sex</label>
+            <input type="text" name="sex" value="<?php echo esc_attr($sex); ?>" placeholder="Sex">
+        </div>
+        <div class="form-column">
+            <label for="sexuality" title="Enter your character Sexuality">Sexuality</label>
+            <input type="text" name="sexuality" value="<?php echo esc_attr($sexuality); ?>" placeholder="Sexuality">
+        </div>
+        <div class="form-column">
+            <label for="age" title="Enter your character Age">Age</label>
+            <input type="text" name="age" value="<?php echo esc_attr($age); ?>" placeholder="Age">
+        </div>
+        <div class="form-column">
+            <label for="description" title="Enter your character Description">Description</label>
+            <input type="text" name="description" value="<?php echo esc_attr($description); ?>" placeholder="Description">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-column save-column">
+            <input type="submit" name="save_character" value="Save" class="save-button">
+            <input type="submit" name="reload_character" value="Reload" class="reload-button">
+            <input type="submit" name="clear_character" value="Clear" class="clear-button">
+        </div>
+    </div>
+    <?php wp_nonce_field('character_nonce_action', 'character_nonce', true, false); ?>
+</form>

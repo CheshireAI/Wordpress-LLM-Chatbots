@@ -1,0 +1,21 @@
+<?php
+
+// character_chat.php
+
+// Define the [character_chat] shortcode
+
+function character_chat_shortcode($atts, $content = null) {
+    // Contents of the character_chat shortcode
+    ob_start();
+    ?>
+    <!-- Character Chat shortcode HTML contents -->
+    <div class="character-chat-container">
+        <?php echo do_shortcode('[character]'); ?>
+        <?php echo do_shortcode('[chat]'); ?>
+    </div>
+    <?php
+    return ob_get_clean();
+}
+add_shortcode('character_chat', 'character_chat_shortcode');
+
+?>

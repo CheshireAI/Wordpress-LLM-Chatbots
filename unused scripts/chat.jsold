@@ -1,0 +1,503 @@
+//chat.js
+
+// Global
+let conversationHistory = "";
+let inactiveTimeout = null;
+let isInactivityPrompt = false;
+let inactivityInterval = 5 * 1000; // 10 seconds, adjust as needed
+let maxInactivityChecks = 5; // The maximum number of times this check should occur
+let inactivityChecks = 0; // Counter keeps track of how many times the check has been made
+
+jQuery(document).ready(async ($) => {
+  await localforage.ready();
+  await localforage.clear();
+
+  let isTyping = false;
+  const responseQueue = [];
+  const name = myUserMeta.name || "";
+  const photoUrl = myUserMeta.photo || "";   
+  const colors = ["#8B008B", "#9370DB", "#8B008B", "#4B0082", "#1E90FF", "#FF6347", "#E40D53", "#557CCA", "#6955BF"];
+  const randomColor = colors[Math.floor(Math.random() * colors.length)];
+  const $responseColumn = $(".response-column");
+  const responseColumnElement = $responseColumn[0];
+  const $prompt = $("#prompt");
+
+  document.documentElement.style.setProperty("--primary-color", randomColor);
+
+  const updateChatHeader = (photoUrl, name) => {
+    $(".chat-header h3").text(name || "");
+    if (photoUrl) {
+      $(".chat-header .header-photo")
+        .attr("src", photoUrl)
+        .on("load", function () {
+          $(".chat-header h3, .chat-header .header-photo").show();
+        });
+    } else {
+      $(".chat-header .header-photo").hide();
+    }
+  };
+  
+  updateChatHeader(photoUrl, name);
+
+  function typeMessage(element, message, index, interval, callback) {
+    element.html(message);
+    if (typeof callback === "function") {
+      callback();
+    }
+    responseColumnElement.scrollTo({
+      top: responseColumnElement.scrollHeight,
+      behavior: "smooth"
+    });
+
+    // Convert plain text URLs (excluding image URLs) to clickable links
+    element.html(function (_, html) {
+      return html.replace(/(https?:\/\/(?!.*\.(?:png|jpg|jpeg|gif|bmp))[^\s]+)/g, '<a href="$1" target="_blank" style="word-break: break-all;">$1</a>');
+    });
+  }
+
+  function scrollToBottom() {
+    console.log('scrollToBottom triggered');
+    const images = $responseColumn.find('img');
+    const lastImage = images.last()[0];
+    
+    if (lastImage && lastImage.complete) {
+      // If the last image is already loaded, scroll immediately
+      scrollToBottomAction();
+    } else if (lastImage) {
+      // If the last image is not yet loaded, wait for it to load
+      lastImage.addEventListener('load', scrollToBottomAction);
+    } else {
+      // No image elements found, scroll immediately
+      scrollToBottomAction();
+    }
+  }  
+  
+  function scrollToBottomAction() {
+    if (window.innerWidth >= 768) {
+      // Smooth scrolling animation for non-mobile devices
+      responseColumnElement.scrollTo({
+        top: responseColumnElement.scrollHeight,
+        behavior: "smooth"
+      });
+    } else {
+      // Instant scroll to the bottom for mobile devices
+      responseColumnElement.scrollTop = responseColumnElement.scrollHeight;
+    }
+  }  
+
+/* One message only no follow-up
+  function appendUserMessage(message) {
+    const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); // Update this line
+    const userMessageElement = $('<div class="message user-message">' + message + '</div>');
+    const userTimestampElement = $('<div class="timestamp user-timestamp">' + timestamp + '</div>');
+  
+    conversationHistory += "\n###User: " + message + "\n";
+    console.log(conversationHistory);
+  
+    userMessageElement.append(userTimestampElement); // Append timestamp as a child of user message
+    $responseColumn.append(userMessageElement);
+    scrollToBottom();
+  }
+  */
+  
+  function appendUserMessage(message) {
+      const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); 
+      const userMessageElement = $('<div class="message user-message">' + message + '</div>');
+      const userTimestampElement = $('<div class="timestamp user-timestamp">' + timestamp + '</div>');
+  
+      // Append all messages to the conversation history
+      conversationHistory += "\n###User: " + message + "\n";
+      console.log(conversationHistory);
+  
+      // If it's not an inactivity prompt, append it to the chat
+      if (!isInactivityPrompt) {
+          userMessageElement.append(userTimestampElement); 
+          $responseColumn.append(userMessageElement);
+          scrollToBottom();
+      }
+  
+      // If there was an existing timeout, clear it
+      if(inactiveTimeout) {
+          clearTimeout(inactiveTimeout);
+      }
+  
+      // Set a timeout to check for user inactivity after inactivityInterval, but only if we haven't done it before and not exceeded maxInactivityChecks
+      if (!isInactivityPrompt && inactivityChecks < maxInactivityChecks) {
+          inactiveTimeout = setTimeout(function() {
+              // Set the flag to indicate this is an inactivity prompt
+              isInactivityPrompt = true;
+
+              // Only generate the inactivity prompt if the prompt is currently empty
+              if ($prompt.text().trim() === '') {
+
+              // let inactivityPrompt = "Say something to get my attention and send me a photo"; 
+              let inactivityPrompt = "Say something to get my attention!"; 
+
+              $prompt.text(inactivityPrompt);
+              console.log("Inactivity prompt: " + inactivityPrompt);
+              handleSubmit();
+              }
+
+              // Increment the counter
+              inactivityChecks++;
+          }, inactivityInterval);
+      }
+      // After handleSubmit is called, reset the isInactivityPrompt flag
+      isInactivityPrompt = false;
+  }
+  
+  function appendAIMessage(message) {
+    const placeholderUrl = "https://t3.ftcdn.net/jpg/03/46/83/96/360_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg";
+    const aiMessageElement = $('<div class="message ai-message"><img src="' + (photoUrl || placeholderUrl) + '" class="photo"></div>');
+    const aiTextElement = $('<div class="ai-text">' + message + '</div>');
+    const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); // Update this line
+    const aiTimestampElement = $('<div class="timestamp ai-timestamp">' + timestamp + '</div>');
+  
+    aiMessageElement.append(aiTextElement);
+    aiMessageElement.append(aiTimestampElement); // Append timestamp as a child of AI message
+    $responseColumn.append(aiMessageElement);
+  
+    typeMessage(aiTextElement, message.trim(), 0, 0, () => {
+      isTyping = false;
+      displayNextResponse();
+    });
+    scrollToBottom();
+  
+    // Exclude image URLs, links, and div elements from conversation history
+    const hasDivClass = /<div\b[^>]*class\s*=\s*["'][^"']*["']/i.test(message);
+    if (!hasDivClass) {
+      conversationHistory += "\n###Response: " + message + "\n";
+      console.log(conversationHistory);
+    }
+  }  
+  
+  function appendImageMessage(imageUrl) {
+    const aiMessageElement = $('<div class="message ai-message"><img src="' + photoUrl + '" class="photo"></div>');
+    const imageElement = $('<img src="' + imageUrl + '" alt="Generated image" class="generated-image">');
+    aiMessageElement.append(imageElement);
+    $responseColumn.append(aiMessageElement);
+    scrollToBottom();
+//    conversationHistory += "[Image: ${imageUrl}]\n";
+//    console.log(conversationHistory);
+  }
+  
+  function displayNextResponse() {
+    if (responseQueue.length > 0 && !isTyping) {
+      isTyping = true;
+      const nextResponse = responseQueue.shift();
+  
+      if (nextResponse.response.startsWith("http")) {
+        const imageUrl = nextResponse.response;
+        appendImageMessage(imageUrl);
+        isTyping = false;
+        displayNextResponse();
+      } else {
+        appendAIMessage(nextResponse.response);
+      }
+    }
+  }
+
+  async function handleSubmit(greeting = false) {
+    const prompt = $prompt.text();
+    const messageLimit = 25;
+    const messages = $(".response-column .message");
+  
+    if (messages.length >= messageLimit) {
+      const messagesToKeep = messages.slice(messages.length - messageLimit);
+  
+      let updatedConversationHistory = "";
+  
+      messagesToKeep.each(function () {
+        const messageText = $(this).text().trim();
+        const isUserMessage = $(this).hasClass("user-message");
+        const isAiMessage = $(this).hasClass("ai-message");
+  
+        if (isUserMessage) {
+          updatedConversationHistory += "\n###User: " + messageText + "\n";
+        } else if (isAiMessage) {
+          updatedConversationHistory += "\n###Response: " + messageText + "\n";
+        }
+      });
+  
+      conversationHistory = updatedConversationHistory;
+  
+      // Update the conversationHistory in localforage
+      await localforage.setItem("conversationHistory", conversationHistory);
+    }
+    
+  
+    if (prompt !== "" || greeting) {
+      if (!greeting) {
+        const userMessage = prompt;
+        appendUserMessage(userMessage);
+        $prompt.text("");
+      }
+  
+      $.ajax({
+        url: myChatAjax.ajaxurl,
+        type: "POST",
+        data: {
+          action: "generate_chat",
+          prompt: prompt,
+          greeting: greeting,
+          conversationHistory: conversationHistory,
+        },
+        success: async function (response) {
+          let ai_responses = [];
+          if (response.success) {
+            console.log(response.data); 
+            ai_responses = response.data;
+          } else {
+            ai_responses = ["I am currently busy. Please check back later."];
+          }
+  
+//          ai_responses.forEach((ai_response) => {
+//            // format new lines
+//            ai_response = ai_response.replace(/\n/g, "<br/>");
+//          });
+
+          ai_responses = ai_responses.map((ai_response) => {
+          // format new lines
+          return ai_response.replace(/\n/g, "<br/>");
+          });
+
+          for (let i = 0; i < ai_responses.length; i++) {
+            if (ai_responses[i].startsWith("http")) {
+              const imageUrl = ai_responses[i];
+              ai_responses[i] = `<img src="${imageUrl}" alt="Generated image" class="generated-image">`;
+            }
+          }
+  
+          ai_responses.forEach((ai_response) => {
+            if (!isTyping) {
+              isTyping = true;
+              if (ai_response.startsWith("http")) {
+                const imageUrl = ai_response;
+                appendImageMessage(imageUrl);
+                isTyping = false;
+                displayNextResponse();
+              } else {
+                appendAIMessage(ai_response.trim());
+              }
+            } else {
+              responseQueue.push({ response: ai_response.trim() });
+              displayNextResponse();
+            }
+          });
+          await localforage.setItem("conversationHistory", conversationHistory);
+        },
+      });
+    }
+  }
+
+  // Event listeners for user input and interaction
+  $prompt.on("input", function () {
+    $("#send-button").addClass("active");
+
+    const primaryColor = getComputedStyle(
+      document.documentElement
+    ).getPropertyValue("--primary-color");
+
+    $("#send-button").css("color", primaryColor);
+  });
+
+  document.getElementById("prompt").addEventListener("focus", function () {
+    this.setAttribute("placeholder", "");
+  });
+  document.getElementById("prompt").addEventListener("blur", function () {
+    if (this.value === "") {
+      this.setAttribute("placeholder", "Type a message");
+    }
+  });
+
+  $(document).on('click', '.generated-image, .uploaded-image', function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+    var imgSrc = $(this).attr('src');
+    $('#lightbox img').attr('src', imgSrc);
+    $('#lightbox').show();
+  });
+  
+$(document).on('click', '#lightbox', function(e) {
+  if (e.target !== this) {
+    // if the image itself is clicked, open it in a new tab
+    if (e.target === $('#lightbox img')[0]) {
+      e.preventDefault(); // prevent default event
+      window.open($('#lightbox img').attr('src'), '_blank');
+    }
+    return;
+  }
+  e.stopPropagation();
+  $('#lightbox').hide();
+});
+
+  $("#send-button").on("click touchstart", async function (e) {
+    e.preventDefault();
+    await handleSubmit();
+    $prompt.focus();
+
+    if ($("#send-button").hasClass("active")) {
+      $("#send-button").addClass("animated");
+
+      setTimeout(function () {
+        $("#send-button").removeClass("active animated");
+
+        $("#send-button").css("color", "");
+      }, 1000);
+    }
+  });
+
+  $("#camera-button").on("click touchstart", async function (e) {
+    e.preventDefault();
+    $prompt.text("send me a photo of you"); // set input field value
+    await handleSubmit();
+    $prompt.text(""); // clear input field after sending
+});
+
+  $prompt.on("keydown", async function (e) {
+    if (e.which === 13) {
+      e.preventDefault();
+      await handleSubmit();
+    }
+  });
+
+  $prompt.on("focus", function () {
+    setTimeout(function () {
+      responseColumnElement.scrollTo({
+        top: responseColumnElement.scrollHeight,
+        behavior: "smooth"
+      });
+      setTimeout(() => {
+        responseColumnElement.scrollTop = responseColumnElement.scrollHeight;
+      }, 100);
+    }, 0);
+  });
+
+  setTimeout(async function () {
+    await handleSubmit(true);
+  }, 0);
+}); //close the jquery
+
+
+
+jQuery(document).ready(function ($) {
+  document.getElementById("image-upload-button").addEventListener("touchstart", function () {
+    $('#image-upload').click();
+  }, { passive: true });
+
+  document.getElementById("image-upload-button").addEventListener("click", function () {
+    $('#image-upload').click();
+  }, { passive: true });
+
+  $('#image-upload').on('change', function () {
+    const file_data = $(this).prop('files')[0];
+    const form_data = new FormData();
+    const $responseColumn = $(".response-column");
+    const responseColumnElement = $responseColumn[0];
+    const photoUrl = myUserMeta.photo || "";
+    const placeholderUrl = "https://t3.ftcdn.net/jpg/03/46/83/96/360_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg";
+    form_data.append('action', 'upload_image');
+    form_data.append('image_upload', file_data);
+  
+    console.log('Image upload in progress...');
+    const imageUrl = URL.createObjectURL(file_data);
+    const $imageMessage = $('<div class="message user-message"></div>'); // Create a container for user message and photo
+    const photoElement = $('<img src="' + imageUrl + '" alt="Uploaded Image" class="uploaded-image">'); // User message photo
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const userTimestampElement = $('<div class="timestamp user-timestamp">' + timestamp + '</div>');
+  
+    function scrollToBottom() {
+      console.log('scrollToBottom triggered');
+      const images = $responseColumn.find('img');
+      const lastImage = images.last()[0];
+      
+      if (lastImage && lastImage.complete) {
+        // If the last image is already loaded, scroll immediately
+        scrollToBottomAction();
+      } else if (lastImage) {
+        // If the last image is not yet loaded, wait for it to load
+        lastImage.addEventListener('load', scrollToBottomAction);
+      } else {
+        // No image elements found, scroll immediately
+        scrollToBottomAction();
+      }
+    }  
+    
+    function scrollToBottomAction() {
+      if (window.innerWidth >= 768) {
+        // Smooth scrolling animation for non-mobile devices
+        responseColumnElement.scrollTo({
+          top: responseColumnElement.scrollHeight,
+          behavior: "smooth"
+        });
+      } else {
+        // Instant scroll to the bottom for mobile devices
+        responseColumnElement.scrollTop = responseColumnElement.scrollHeight;
+      }
+    } 
+
+    $imageMessage.append(photoElement); // Append photo to user message container
+    $imageMessage.append(userTimestampElement); // Append timestamp as a child of user message container
+  
+    $responseColumn.append($imageMessage);
+    scrollToBottom();
+  
+  //  conversationHistory += '[Image Link: ' + imageUrl + ']\n';
+  //  console.log(conversationHistory);
+  
+    $.ajax({
+      url: myChatAjax.ajaxurl,
+      type: 'POST',
+      data: form_data,
+      contentType: false,
+      processData: false,
+      beforeSend: function () { },
+      success: function (response) {
+        if (response.success) {
+          console.log('Image upload successful. Image URL:', response.data.file_url);
+  
+          if (response.data.openai_response) {
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const aiTimestampElement = $('<div class="timestamp ai-timestamp">' + timestamp + '</div>');
+            const aiMessageElement = $('<div class="message ai-message"></div>'); // Create a container for AI message and photo
+            const aiTextElement = $('<div class="ai-text">' + response.data.openai_response + '</div>'); // AI message text
+            const photoElement = $('<img src="' + (photoUrl || placeholderUrl) + '" class="photo">'); // AI message photo
+  
+            aiMessageElement.append(photoElement); // Append photo to AI message container
+            aiMessageElement.append(aiTextElement); // Append AI message text to AI message container
+            aiMessageElement.append(aiTimestampElement); // Append timestamp as a child of AI message container
+  
+            $responseColumn.append(aiMessageElement);
+            scrollToBottom();
+            conversationHistory += '\n###Response: ' + response.data.openai_response + '\n';
+            console.log(conversationHistory);
+          }
+  
+          responseColumnElement.scrollTo({
+            top: responseColumnElement.scrollHeight,
+            behavior: "smooth"
+          });
+  
+        } else {
+          console.log('Image upload failed. Response:', response);
+        }
+      },
+      error: function (xhr, status, error) {
+        console.log('AJAX request failed. Status:', status, '. Error:', error);
+      }
+    });
+  });  
+});
+
+// Lightbox download button
+window.onload = function() {
+  document.getElementById('lightbox-download-button').onclick = function() {
+      var imgSrc = document.getElementById('generated-image').src;
+      var fileName = imgSrc.substring(imgSrc.lastIndexOf('/') + 1);
+      var link = document.createElement('a');
+      link.href = imgSrc;
+      link.download = fileName;
+      link.click();
+  };
+};
+
