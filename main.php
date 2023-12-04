@@ -3,7 +3,7 @@
 Plugin Name: Sexbot
 Description: AI Powered NSFW Porn Bot.
 Version: 1.0
-Author: CheshireAI
+Author: Lex, CheshireAI
 License: GPL2
 */
 
