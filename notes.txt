@@ -1,0 +1,2 @@
+fixed the error with clearing the meta_keys
+added demo versions with paywall
